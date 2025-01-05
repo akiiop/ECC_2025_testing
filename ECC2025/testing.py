@@ -192,7 +192,7 @@ def test_3a( Aj, Bk ):
        if sol:
               print('Felicitaciones, tu solución es correcta!')
 
-def test_3b( qcs ):
+def test_3b( qcs, alice_trits, bob_trits ):
     Ops_2qb = np.array([[[ 2.70598050e-01+0.j,  2.70598050e-01+0.j,  6.53281482e-01+0.j,
           6.53281482e-01+0.j],
         [-6.53281482e-01+0.j,  6.53281482e-01+0.j, -2.70598050e-01+0.j,
@@ -273,21 +273,33 @@ def test_3b( qcs ):
          -2.70598050e-01+0.j],
         [ 2.70598050e-01+0.j, -6.53281482e-01+0.j,  2.70598050e-01+0.j,
           6.53281482e-01+0.j]]])
-    
-    is_equal = False 
+
+    is_equal = False
+    op_indices = []
     for j, qc in enumerate(qcs):
         qc = qc.copy()
         qc.remove_final_measurements()
         is_equal = False
-        for op in Ops_2qb:
-            if np.isclose( np.linalg.norm( Operator(qc).to_matrix() - op ), 0 ):
+        for ind, op in enumerate(Ops_2qb):
+            if np.isclose(np.linalg.norm(Operator(qc).to_matrix() - op), 0):
                 is_equal = True
+                op_indices.append(ind)
         if not is_equal:
-            print( 'El circuito {} está incorrecto'.format(j) )
+            print('El circuito {} está incorrecto'.format(j))
             break
 
+    op_count = [op_indices.count(ind) for ind in range(len(Ops_2qb))]
+    trit_combinations = []
+    for aa, bb in zip(alice_trits, bob_trits):
+        trit_combinations.append(int(str(aa) + str(bb), base=3))
+    ideal_count = [trit_combinations.count(index) for index in range(9)]
+
+    counts_correct = set(ideal_count) == set(op_count)
+    if not counts_correct:
+        return print('El muestreo sobre los trits elegidos no es correcto')
     if is_equal:
-        print('Felicitaciones, tu solución es correcta!')
+        return print('Felicitaciones, tu solución es correcta!')
+
 
 def test_3c( key, alice_random_trits, bob_random_trits  ):
     len_key = 0
